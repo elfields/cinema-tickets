@@ -51,7 +51,7 @@ describe('TicketService', () => {
     });
 
     describe('Input validation', () => {
-        it('should throw an error if accountId is invalid', () => {
+        it('should throw an error if accountId is invalid - using 0', () => {
             const service = new TicketService();
     
             expect(() => service.purchaseTickets(0, new TicketTypeRequest('ADULT', 1)))
@@ -59,6 +59,33 @@ describe('TicketService', () => {
             expect(() => service.purchaseTickets(0, new TicketTypeRequest('ADULT', 1)))
             .toThrow('Invalid accountId');
         });
+
+        it('should throw an error if accountId is invalid - using a float', () => {
+            const service = new TicketService();
+
+            expect(() => service.purchaseTickets(1.5, new TicketTypeRequest('ADULT', 1)))
+              .toThrow(InvalidPurchaseException);
+            expect(() => service.purchaseTickets(1.5, new TicketTypeRequest('ADULT', 1)))
+              .toThrow('Invalid accountId');
+          });
+        
+          it('should throw an error if accountId is invalid - using a string', () => {
+            const service = new TicketService();
+
+            expect(() => service.purchaseTickets('1', new TicketTypeRequest('ADULT', 1)))
+              .toThrow(InvalidPurchaseException);
+            expect(() => service.purchaseTickets('1', new TicketTypeRequest('ADULT', 1)))
+              .toThrow('Invalid accountId');
+          });
+        
+          it('should throw an error if accountId is invalid - using null', () => {
+            const service = new TicketService();
+
+            expect(() => service.purchaseTickets(null, new TicketTypeRequest('ADULT', 1)))
+              .toThrow(InvalidPurchaseException);
+            expect(() => service.purchaseTickets(null, new TicketTypeRequest('ADULT', 1)))
+              .toThrow('Invalid accountId');
+          });
     
         it('should throw an error if there are no ticket type requests provided', () => {
             const service = new TicketService();
@@ -71,7 +98,7 @@ describe('TicketService', () => {
 
         it('should throw an error if there is a negative ticket count', () => {
             const service = new TicketService();
-            
+
             expect(() => service.purchaseTickets(1, new TicketTypeRequest('ADULT', -1)))
                 .toThrow(InvalidPurchaseException);
             expect(() => service.purchaseTickets(1, new TicketTypeRequest('ADULT', -1)))
@@ -135,4 +162,34 @@ describe('TicketService', () => {
             )).toThrow('At least one ticket must be purchased');
         });
     });
+
+    describe('Third-party service validation', () => {
+        it('should test TicketPaymentService validation directly', () => {
+            const paymentService = new TicketPaymentService();
+            
+            expect(() => paymentService.makePayment(1.5, 100))
+                .toThrow(TypeError);
+            expect(() => paymentService.makePayment(1.5, 100))
+                .toThrow('accountId must be an integer');
+            
+            expect(() => paymentService.makePayment(1, 100.5))
+                .toThrow(TypeError);
+            expect(() => paymentService.makePayment(1, 100.5))
+                .toThrow('totalAmountToPay must be an integer');
+        });
+      
+        it('should test SeatReservationService validation directly', () => {
+            const reservationService = new SeatReservationService();
+            
+            expect(() => reservationService.reserveSeat(1.5, 5))
+                .toThrow(TypeError);
+            expect(() => reservationService.reserveSeat(1.5, 5))
+                .toThrow('accountId must be an integer');
+            
+            expect(() => reservationService.reserveSeat(1, 5.5))
+                .toThrow(TypeError);
+            expect(() => reservationService.reserveSeat(1, 5.5))
+                .toThrow('totalSeatsToAllocate must be an integer');
+        });
+      });
 });
